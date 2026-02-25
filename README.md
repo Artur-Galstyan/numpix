@@ -63,9 +63,9 @@ pix(jnp.array(batch))
 ```python
 numpix.pix(
     array,
-    max_show: int = 20,
+    max_show: int = 40,
     color_scheme: str = "cividis",
-    max_slices: int = 4,
+    max_slices: int = 3,
     layout: Literal["horizontal", "vertical"] = "horizontal",
     use_kitty_protocol: bool = True,
 )

@@ -125,7 +125,7 @@ def pix(
     color_scheme: Literal[
         "magma", "hot", "grey", "inferno", "plasma", "cividis", "coolwarm"
     ] = "cividis",
-    max_slices: int = 4,
+    max_slices: int = 3,
     layout: Literal["horizontal", "vertical"] = "horizontal",
     use_kitty_protocol: bool = True,
 ):
