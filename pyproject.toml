@@ -5,3 +5,6 @@ description = "A simple, (almost) dependency free array visualiser for the termi
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = ["numpy"]
+
+[tool.setuptools.packages.find]
+include = ["numpix*"]
