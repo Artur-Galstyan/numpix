@@ -135,6 +135,8 @@ def pix(
     original_dtype = array.dtype
     if not isinstance(array, np.ndarray):
         array = np.asarray(array)
+    if array.dtype == bool:
+        array = array.astype(np.float32)
 
     if use_kitty_protocol:
         use_kitty_protocol = kitty_protocol_enabled
