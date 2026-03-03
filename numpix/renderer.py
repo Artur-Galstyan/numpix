@@ -137,6 +137,7 @@ def _normalize(b, lo, hi):
 
 def _pix_single(
     array,
+    show_array_info: bool = False,
     max_show: int = 40,
     color_scheme: Literal[
         "magma", "hot", "grey", "inferno", "plasma", "cividis", "coolwarm"
@@ -175,12 +176,13 @@ def _pix_single(
 
     original_shape = array.shape
 
-    write(f"\033[1mshape\033[0m={original_shape}  ")
-    write(f"\033[1mmin\033[0m={actual_min:.4f}  ")
-    write(f"\033[1mmax\033[0m={actual_max:.4f}  ")
-    write(f"\033[1mmean\033[0m={mean:.4f}  ")
-    write(f"\033[1mvar\033[0m={var:.4f} ")
-    write(f"\033[1mdtype\033[0m={original_dtype}\n")
+    if show_array_info:
+        write(f"\033[1mshape\033[0m={original_shape}  ")
+        write(f"\033[1mmin\033[0m={actual_min:.4f}  ")
+        write(f"\033[1mmax\033[0m={actual_max:.4f}  ")
+        write(f"\033[1mmean\033[0m={mean:.4f}  ")
+        write(f"\033[1mvar\033[0m={var:.4f} ")
+        write(f"\033[1mdtype\033[0m={original_dtype}\n")
 
     if use_kitty_protocol:
         cell_h, cell_w = _get_cell_size()
@@ -262,6 +264,7 @@ def _pix_single(
 
 def pix(
     *arrays,
+    show_array_info: bool = False,
     max_show: int = 40,
     color_scheme: Literal[
         "magma", "hot", "grey", "inferno", "plasma", "cividis", "coolwarm"
@@ -283,6 +286,7 @@ def pix(
     for array in arrays:
         _pix_single(
             array,
+            show_array_info=show_array_info,
             max_show=max_show,
             color_scheme=color_scheme,
             max_slices=max_slices,
