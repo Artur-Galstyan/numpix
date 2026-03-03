@@ -58,27 +58,55 @@ pix(torch.randn(3, 28, 28))
 pix(jnp.array(batch))
 ```
 
+### Multiple arrays
+
+Pass multiple arrays to `pix()` to visualize them one after another. Each array gets its own color range by default:
+
+```python
+a = np.sin(np.linspace(0, 4 * np.pi, 100)).reshape(10, 10)
+b = np.random.rand(10, 10) * 100
+pix(a, b)
+```
+
+Use `shared_range=True` to normalize all arrays to the same color scale — useful for seeing how values evolve across arrays:
+
+```python
+pix(a, b, shared_range=True)
+```
+
+### Arrays with inf values
+
+`pix` handles `-inf` and `inf` gracefully — `-inf` maps to the darkest color, `inf` to the brightest:
+
+```python
+masked = np.random.randn(8, 8)
+masked[np.tril_indices(8, -1)] = -float("inf")
+pix(masked)
+```
+
 ## API
 
 ```python
 numpix.pix(
-    array,
+    *arrays,
     max_show: int = 40,
     color_scheme: str = "cividis",
     max_slices: int = 3,
     layout: Literal["horizontal", "vertical"] = "horizontal",
     use_kitty_protocol: bool = True,
+    shared_range: bool = False,
 )
 ```
 
 | Parameter | Description |
 |---|---|
-| `array` | numpy ndarray, PyTorch tensor, or JAX array. Up to 3 dimensions. |
-| `max_show` | Max rows/cols shown before truncating (Unicode fallback mode). Default `20`. |
+| `*arrays` | One or more numpy ndarrays, PyTorch tensors, or JAX arrays. Up to 3 dimensions each. |
+| `max_show` | Max rows/cols shown before truncating (Unicode fallback mode). Default `40`. |
 | `color_scheme` | One of `cividis`, `magma`, `inferno`, `plasma`, `hot`, `coolwarm`, `grey`. Default `cividis`. |
-| `max_slices` | Max number of 2D slices shown for 3D arrays. Default `4`. |
+| `max_slices` | Max number of 2D slices shown for 3D arrays. Default `3`. |
 | `layout` | Arrange slices `"horizontal"` (side by side) or `"vertical"` (stacked). Default `"horizontal"`. |
 | `use_kitty_protocol` | Use the Kitty graphics protocol if supported. Default `True`. |
+| `shared_range` | When passing multiple arrays, normalize them all to the same color scale. Default `False`. |
 
 ## Terminal support
 

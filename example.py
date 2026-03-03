@@ -45,3 +45,19 @@ pix(batch)
 
 pix(jnp.array(batch))
 pix(torch.from_numpy(batch))
+
+print("Multi Array 1:")
+
+# Multi-array: each gets its own color range
+a = np.sin(np.linspace(0, 4 * np.pi, 100)).reshape(10, 10)
+b = np.random.rand(10, 10) * 100
+pix(a, b)
+
+# Multi-array with shared range: same color scale across all
+print("Multi Array 2 with shared range:")
+pix(a, b, shared_range=True)
+
+# Arrays with -inf (e.g. masked log-space values)
+masked = np.random.randn(8, 8)
+masked[np.tril_indices(8, -1)] = -float("inf")
+pix(masked)

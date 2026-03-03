@@ -119,7 +119,23 @@ def _truncate_2d(normed, max_show):
     return normed
 
 
-def pix(
+def _compute_range(array):
+    """Compute min/max from finite values only, for safe normalization with inf."""
+    finite_mask = np.isfinite(array)
+    if finite_mask.any():
+        return float(array[finite_mask].min()), float(array[finite_mask].max())
+    return 0.0, 1.0
+
+
+def _normalize(b, lo, hi):
+    """Normalize to [0, 1], mapping -inf to 0, +inf to 1, preserving nan."""
+    normed = ((b - lo) + 1e-8) / ((hi - lo) + 1e-8)
+    normed = np.where(np.isneginf(b), 0.0, normed)
+    normed = np.where(np.isposinf(b), 1.0, normed)
+    return normed
+
+
+def _pix_single(
     array,
     max_show: int = 40,
     color_scheme: Literal[
@@ -128,6 +144,8 @@ def pix(
     max_slices: int = 3,
     layout: Literal["horizontal", "vertical"] = "horizontal",
     use_kitty_protocol: bool = True,
+    shared_lo: float | None = None,
+    shared_hi: float | None = None,
 ):
     assert array.ndim <= 3, (
         "Only arrays up to 3 dims are supported. Pass a 2D or 3D slice, e.g. numpix.show(arr[0])"
@@ -146,23 +164,20 @@ def pix(
     if array.ndim == 2:
         array = array[np.newaxis]
 
-    lo, hi = array.min(), array.max()
-    original_shape = array.shape
-
-    if array.ndim == 1:
-        array = array.reshape(1, -1)
-    if array.ndim == 2:
-        array = array[np.newaxis]
-
-    lo, hi = array.min(), array.max()
-    mean = array.mean()
-    var = array.var()
+    if shared_lo is not None and shared_hi is not None:
+        lo, hi = shared_lo, shared_hi
+    else:
+        lo, hi = _compute_range(array)
+    actual_min, actual_max = float(array.min()), float(array.max())
+    with np.errstate(invalid="ignore"):
+        mean = float(array.mean())
+        var = float(array.var())
 
     original_shape = array.shape
 
     write(f"\033[1mshape\033[0m={original_shape}  ")
-    write(f"\033[1mmin\033[0m={lo:.4f}  ")
-    write(f"\033[1mmax\033[0m={hi:.4f}  ")
+    write(f"\033[1mmin\033[0m={actual_min:.4f}  ")
+    write(f"\033[1mmax\033[0m={actual_max:.4f}  ")
     write(f"\033[1mmean\033[0m={mean:.4f}  ")
     write(f"\033[1mvar\033[0m={var:.4f} ")
     write(f"\033[1mdtype\033[0m={original_dtype}\n")
@@ -174,7 +189,7 @@ def pix(
 
         displays = []
         for b in array:
-            normed = ((b - lo) + 1e-8) / ((hi - lo) + 1e-8)
+            normed = _normalize(b, lo, hi)
             h, w = normed.shape
             px_per_val_x = max(1, (target_cols * cell_w) // w)
             px_per_val_y = max(1, (target_rows * cell_h) // h)
@@ -210,7 +225,7 @@ def pix(
     else:
         displays = []
         for b in array:
-            normed = ((b - lo) + 1e-8) / ((hi - lo) + 1e-8)
+            normed = _normalize(b, lo, hi)
             displays.append(_truncate_2d(normed, max_show))
 
         half_slices = max_slices // 2
@@ -243,3 +258,36 @@ def pix(
                             continue
                         _render_cell(d, y, x, color_scheme)
                 _render_break()
+
+
+def pix(
+    *arrays,
+    max_show: int = 40,
+    color_scheme: Literal[
+        "magma", "hot", "grey", "inferno", "plasma", "cividis", "coolwarm"
+    ] = "cividis",
+    max_slices: int = 3,
+    layout: Literal["horizontal", "vertical"] = "horizontal",
+    use_kitty_protocol: bool = True,
+    shared_range: bool = False,
+):
+    shared_lo, shared_hi = None, None
+    if shared_range and len(arrays) > 1:
+        all_np = []
+        for a in arrays:
+            arr = np.asarray(a) if not isinstance(a, np.ndarray) else a
+            all_np.append(arr)
+        combined = np.concatenate([a.ravel() for a in all_np])
+        shared_lo, shared_hi = _compute_range(combined)
+
+    for array in arrays:
+        _pix_single(
+            array,
+            max_show=max_show,
+            color_scheme=color_scheme,
+            max_slices=max_slices,
+            layout=layout,
+            use_kitty_protocol=use_kitty_protocol,
+            shared_lo=shared_lo,
+            shared_hi=shared_hi,
+        )
