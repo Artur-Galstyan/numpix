@@ -1,6 +1,6 @@
 [project]
 name = "numpix"
-version = "0.9.13"
+version = "0.9.14"
 description = "A simple, (almost) dependency free array visualiser for the terminal"
 readme = "README.md"
 requires-python = ">=3.13"

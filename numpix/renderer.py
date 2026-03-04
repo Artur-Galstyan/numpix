@@ -135,6 +135,15 @@ def _normalize(b, lo, hi):
     return normed
 
 
+def _auto_scale(h, w):
+    dim = max(h, w)
+    if dim <= 3:
+        return 3
+    elif dim <= 10:
+        return 2
+    return 1
+
+
 def _pix_single(
     array,
     show_array_info: bool = False,
@@ -147,6 +156,7 @@ def _pix_single(
     use_kitty_protocol: bool = True,
     shared_lo: float | None = None,
     shared_hi: float | None = None,
+    scale: int | Literal["auto"] = "auto",
 ):
     assert array.ndim <= 3, (
         "Only arrays up to 3 dims are supported. Pass a 2D or 3D slice, e.g. numpix.show(arr[0])"
@@ -164,6 +174,11 @@ def _pix_single(
         array = array.reshape(1, -1)
     if array.ndim == 2:
         array = array[np.newaxis]
+
+    assert len(array.shape) == 3
+    _, arr_h, arr_w = array.shape  # ty:ignore[invalid-assignment]
+    if scale == "auto":
+        scale = _auto_scale(arr_h, arr_w)
 
     if shared_lo is not None and shared_hi is not None:
         lo, hi = shared_lo, shared_hi
@@ -228,7 +243,12 @@ def _pix_single(
         displays = []
         for b in array:
             normed = _normalize(b, lo, hi)
-            displays.append(_truncate_2d(normed, max_show))
+            truncated = _truncate_2d(normed, max_show)
+            if scale > 1:
+                truncated = np.repeat(
+                    np.repeat(truncated, scale, axis=0), scale, axis=1
+                )
+            displays.append(truncated)
 
         half_slices = max_slices // 2
         if len(displays) > max_slices:
@@ -273,6 +293,7 @@ def pix(
     layout: Literal["horizontal", "vertical"] = "horizontal",
     use_kitty_protocol: bool = True,
     shared_range: bool = False,
+    scale: int | Literal["auto"] = "auto",
 ):
     shared_lo, shared_hi = None, None
     if shared_range and len(arrays) > 1:
@@ -294,4 +315,5 @@ def pix(
             use_kitty_protocol=use_kitty_protocol,
             shared_lo=shared_lo,
             shared_hi=shared_hi,
+            scale=scale,
         )

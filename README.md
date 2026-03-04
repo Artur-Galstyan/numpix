@@ -95,6 +95,7 @@ numpix.pix(
     layout: Literal["horizontal", "vertical"] = "horizontal",
     use_kitty_protocol: bool = True,
     shared_range: bool = False,
+    scale: int | Literal["auto"] = "auto",
 )
 ```
 
@@ -107,6 +108,7 @@ numpix.pix(
 | `layout` | Arrange slices `"horizontal"` (side by side) or `"vertical"` (stacked). Default `"horizontal"`. |
 | `use_kitty_protocol` | Use the Kitty graphics protocol if supported. Default `True`. |
 | `shared_range` | When passing multiple arrays, normalize them all to the same color scale. Default `False`. |
+| `scale` | Block size per value: `1`, `2`, or `3`. Default `"auto"` (3 for dims <= 3, 2 for 4–10, 1 for larger). |
 
 ## Terminal support
 

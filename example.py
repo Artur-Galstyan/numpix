@@ -4,7 +4,7 @@ import torch
 
 from numpix import pix
 
-pix(np.linspace(0, 1, 100).reshape(10, 10))
+pix(np.linspace(0, 1, 100).reshape(10, 10), use_kitty_protocol=False)
 
 board = np.indices((8, 8)).sum(axis=0) % 2
 pix(board.astype(float))
